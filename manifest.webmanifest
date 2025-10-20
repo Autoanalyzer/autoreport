@@ -1,0 +1,15 @@
+{
+  "name": "Auto Report - pH Calibration",
+  "short_name": "Auto Report",
+  "description": "Generate pH calibration certificates and save/share as PDF.",
+  "start_url": "index.html#ph",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    { "src": "assets/logo_nps.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["productivity", "business"]
+}

@@ -1,0 +1,147 @@
+1	:root{
+2	  --ink:#1b1f24;--muted:#5b6975;--primary:#0d6efd;--border:#cfd6de;--bg:#f6f8fa;--paper:#ffffff;--accent:#e9eef3;
+3	  --section:#bcd0ea; /* light blue bar like sample */
+4	  --section-strong:#8aa9d1; /* darker line */
+5	}
+6	*{box-sizing:border-box}
+7	html,body{height:100%}
+8	body{margin:0;color:var(--ink);font-family:Segoe UI,Tahoma,system-ui,-apple-system,sans-serif;background:var(--bg)}
+9	
+10	.app-header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:3}
+11	.app-header .brand{font-weight:700}
+12	.app-header .title{flex:1;text-align:center;font-weight:600}
+13	.app-header .actions{display:flex;gap:8px;align-items:center}
+14	.app-header button,.button-like{border:1px solid var(--border);background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
+15	.app-header button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+16	.button-like{display:inline-block}
+17	
+18	.layout{display:grid;grid-template-columns:minmax(340px,520px) 1fr;gap:12px;padding:12px}
+19	.panel{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+20	.panel>h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;letter-spacing:.2px}
+21	
+22	.form-panel{max-height:calc(100vh - 80px);display:flex;flex-direction:column}
+23	.form-panel form{padding:12px 14px;overflow:auto}
+24	
+25	details{border:1px solid var(--border);border-radius:8px;margin:10px 0;background:#fff}
+26	details>summary{cursor:pointer;list-style:none;padding:10px 12px;font-weight:600;background:var(--accent);border-bottom:1px solid var(--border)}
+27	details>div,details>table,details>label,.table-controls{padding:10px 12px}
+28	
+29	label{display:flex;flex-direction:column;gap:6px;font-size:12px}
+30	label input, label select, label textarea{padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+31	label.block{margin-top:6px}
+32	
+33	.grid{display:grid;gap:10px}
+34	.g-3{grid-template-columns:repeat(3,1fr)}
+35	.mt-6{margin-top:6px}
+36	.mt-8{margin-top:8px}
+37	
+38	.table-controls{display:flex;gap:8px}
+39	table{width:100%;border-collapse:collapse}
+40	table.tgrid{table-layout:fixed;width:100%}
+41	table.mini th, table.mini td{border:1px solid var(--border);padding:6px 8px;font-size:12px}
+42	table.tgrid th{background:var(--section);font-weight:700}
+43	table.tgrid thead tr:first-child th{background:var(--section-strong);color:#0f2239}
+44	table.tgrid th,table.tgrid td{border:1px solid var(--border);padding:6px 8px;font-size:12px;text-align:left}
+45	
+46	.preview-panel{padding:0}
+47	.preview-panel>h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px}
+48	.paper{background:var(--paper);width:210mm;margin:12px auto;border:1.4px solid var(--section-strong);border-radius:2px;box-shadow:0 2px 14px rgba(20,40,80,.08);padding:12mm;position:relative}
+49	/* remove decorative frames for a clean edge and fit */
+50	.paper::before,.paper::after{content:none}
+51	.paper> *{position:relative;z-index:1}
+52	.cert{display:flex;flex-direction:column;min-height:100%}
+53	.cert-header{display:grid;grid-template-columns:36mm 1fr;gap:8px;align-items:center;border-bottom:1.4px solid var(--ink);padding-bottom:4px}
+54	.logo{width:36mm;height:28mm;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;background:#ffef5a}
+55	.cert-meta{display:flex;flex-direction:column;gap:4px}
+56	.cert-title{text-align:center;font-size:18px;font-weight:700;font-family:Cambria, "Times New Roman", serif;line-height:1.2}
+57	.cert-sub{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink);padding:0 4px}
+58	
+59	.block{margin-top:10px;border:1px solid var(--border)}
+60	.block-title{background:var(--section);padding:4px 6px;font-weight:800;font-size:11px;border-bottom:1px solid var(--section-strong);letter-spacing:.2px}
+61	.cal-result-line{padding:2px 6px 2px 6px;font-size:11px;color:var(--ink)}
+62	.kv th{width:22%;text-align:left;background:#eef4fb;border-right:1px solid var(--border);font-weight:600}
+63	.kv td,.kv th{border-bottom:1px solid var(--border);padding:4px 6px;font-size:11px}
+64	.kv td{background:#fff}
+65	.cert .kv th::after{content:' :';float:right;color:var(--muted)}
+66	.kv th.no-colon::after{content:''}
+67	/* keep sections together when printing */
+68	.block{break-inside:avoid;page-break-inside:avoid}
+69	#calibration-record,.cal-wrap,#end-of-calibration{break-inside:avoid;page-break-inside:avoid}
+70	#photos-block{break-before:auto;page-break-before:auto}
+71	/* By default keep photos near the bottom, but override in PDF to expand */
+72	.cert #photos-block{margin-top:auto}
+73	
+74	/* pH Reference Data table (preview) — mimic Calibrate Record */
+75	table.ref{table-layout:fixed;width:100%}
+76	table.ref th,table.ref td{white-space:nowrap;vertical-align:middle}
+77	/* keep spacing consistent with sample */
+78	table.ref th{padding:6px 8px}
+79	table.ref td{padding:6px 8px}
+80	/* strong, explicit alignment per column */
+81	table.tgrid.ref{table-layout:fixed !important;width:100%}
+82	table.tgrid.ref thead th{background:var(--section-strong);color:#0f2239;text-align:center}
+83	table.tgrid.ref tbody td:nth-child(1), table.tgrid.ref thead th:nth-child(1){text-align:left}
+84	table.tgrid.ref tbody td:nth-child(2), table.tgrid.ref thead th:nth-child(2){text-align:left}
+85	table.tgrid.ref tbody td:nth-child(3), table.tgrid.ref thead th:nth-child(3){text-align:center}
+86	table.tgrid.ref tbody td:nth-child(4), table.tgrid.ref thead th:nth-child(4){text-align:right}
+87	/* lock column widths to avoid drift */
+88	table.tgrid.ref col.col-eq{width:44%}
+89	table.tgrid.ref col.col-brand{width:28%}
+90	table.tgrid.ref col.col-serial{width:12%}
+91	table.tgrid.ref col.col-exp{width:16%}
+92	
+93	/* Editable Buffer table (left panel) should match preview alignment */
+94	#buffer-table{table-layout:fixed;width:100%}
+95	#buffer-table thead th{text-align:center}
+96	#buffer-table th,#buffer-table td{text-align:left}
+97	#buffer-table th:nth-child(3),#buffer-table td:nth-child(3){text-align:center}
+98	#buffer-table th:nth-child(4),#buffer-table td:nth-child(4){text-align:right}
+99	#buffer-table td{padding:0} /* inputs carry padding */
+100	#buffer-table input{width:100%;padding:6px 8px;border:0;outline:0;background:transparent;font:inherit}
+101	#buffer-table td:nth-child(3) input{text-align:center}
+102	#buffer-table td:nth-child(4) input{text-align:right}
+103	
+104	/* Photo strip: lock to 3 equal frames with consistent aspect */
+105	.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:stretch}
+106	.photos img{display:block;width:100%;height:38mm;object-fit:cover;border:1px solid var(--border);background:#fff}
+107	
+108	.app-footer{padding:8px 14px;color:var(--muted);text-align:center}
+109	
+110	/* subtle row striping for large tables */
+111	tbody tr:nth-child(odd) td{background:#fafcff}
+112	
+113	/* Print styles for cleaner PDF */
+114	@media print{
+115	  body{background:#fff}
+116	  .app-header,.form-panel,.app-footer{display:none}
+117	  /* exact A4 when printing via browser */
+118	  @page{size:A4;margin:0}
+119	  .paper{width:210mm;min-height:297mm;margin:0 auto;box-shadow:none;border:1.2px solid var(--section-strong);padding:12mm}
+120	}
+121	
+122	/* PDF tweaks to guarantee single A4 page fit (no scaling distortion) */
+123	.paper.pdf{width:210mm;min-height:297mm;padding:12mm;margin:0 auto}
+124	.paper.pdf .cert-title{font-size:17px}
+125	.paper.pdf .block-title{padding:3px 5px;font-size:10.5px}
+126	.paper.pdf .cal-result-line{padding:2px 5px;font-size:10.5px}
+127	.paper.pdf .block{margin-top:8px}
+128	.paper.pdf .kv td,.paper.pdf .kv th{padding:3px 5px;font-size:10.5px}
+129	.paper.pdf .cal2 th,.paper.pdf .cal2 td{padding:4px 6px;font-size:10px}
+130	.paper.pdf .photos img{height:36mm}
+131	/* In PDF export, let photos section grow to fill leftover height */
+132	.paper.pdf .cert{min-height:100%}
+133	.paper.pdf .cert #photos-block{margin-top:6px;flex:1 1 auto;display:flex;flex-direction:column}
+134	.paper.pdf .photos{flex:1 1 auto}
+135	.paper.pdf .photos img{height:100%}
+136	
+137	/* Calibration table specialized styling (split into two tables) */
+138	.cal-wrap{border:1.6px solid #27364b}
+139	.cal-split{display:grid;grid-template-columns:1fr 1fr;gap:0}
+140	.cal2{width:100%;border-collapse:collapse}
+141	.cal2 th,.cal2 td{border:1px solid var(--border);padding:6px 8px;font-size:12px;text-align:center;white-space:nowrap}
+142	.cal2 thead tr.grp th{background:var(--section-strong);color:#0f2239;font-weight:800}
+143	.cal2 thead tr.sub th{background:var(--section);font-weight:700}
+144	.cal2 thead tr.units th{background:#eef4fb;color:#3a526e;font-size:11px;font-weight:600}
+145	.cal2.left{border-right:1.6px solid #27364b}
+146	.cal2.right{border-left:1.6px solid #27364b}
+147	

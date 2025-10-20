@@ -1,0 +1,104 @@
+/* Consistency-specific overrides (kept minimal) */
+
+/* Keep header layout identical to other modules */
+.cert-header{ grid-template-columns:30mm 1fr auto; align-items:center; gap:6px; }
+/* Keep logo perfectly square to avoid squashing */
+.cert-header .logo{ grid-column:1; align-self:center; width:30mm; height:30mm; }
+.cert-header .logo img{ display:block; width:100%; height:100%; object-fit:contain; }
+.cert-header .cert-title{ grid-column:2; text-align:center; justify-self:center; margin:0; }
+.cert-header .cert-sub{ grid-column:3; justify-self:end; align-self:center; text-align:right; margin:0; }
+
+.paper.pdf{ padding: 3mm 12mm 10mm 12mm; }
+.paper.pdf .cert-header{ padding-bottom:3px; }
+
+/* Tables tuned a bit tighter for consistency layout */
+.cert{ --border:#a0b1c6; } /* slightly darker borders inside the certificate only */
+.paper.pdf table.tgrid th,
+.paper.pdf table.tgrid td{ font-size:10.5px; padding:4px 5px; }
+
+/* Hide header action buttons and in-form tabs on small screen */
+.app-header .actions{ display:none !important }
+.form-actions{ display:none !important }
+.form-tabs{ display:none !important }
+.form-bar{ display:none !important }
+
+/* Yellow section headers across Consistency form */
+.panel>h2{
+  background:#BBDEFB; /* deeper blue */
+  color:#0f2239;
+  border-bottom:1px solid #64B5F6;
+}
+.form-panel details>summary{
+  background:#BBDEFB !important; /* deeper blue */
+  color:#0f2239;
+  border-bottom:1px solid #64B5F6;
+}
+
+/* Module tag under title */
+.app-header .title::after{ content:'consistency'; display:block; margin-top:2px; color:#E3F2FD; font-weight:600; font-size:12px }
+
+/* Function check tables */
+table.funcchk{ width:100%; border-collapse:collapse; table-layout:fixed; }
+table.funcchk th, table.funcchk td{ border:1px solid var(--border); padding:6px 8px; font-size:12px; vertical-align:middle; }
+.paper.pdf table.funcchk th, .paper.pdf table.funcchk td{ font-size:10.5px; padding:4px 5px; }
+/* Make both function-check tables align nicely */
+.paper.pdf #function-check .grid, #function-check .grid{ align-items:stretch; }
+/* Tighten center gap between the two tables in certificate */
+.cert #function-check .grid{ gap: 3px; }
+.cert .block .grid.g-2{ gap: 4px; }
+/* Two-column grid helper for function-check section */
+.g-2{ grid-template-columns: repeat(2, 1fr); }
+.paper.pdf #function-check .grid.g-2{ grid-template-columns: 1fr 1fr; }
+
+/* Form (app) Function Check: stack on small screens */
+#func-section .grid.g-2{ grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px){
+  #func-section .grid.g-2{ grid-template-columns: 1fr !important; }
+}
+
+/* Parameters form: stack tables on small screens */
+#params-section .grid.g-2{ grid-template-columns: 1fr 1fr; }
+@media (max-width: 900px){
+  #params-section .grid.g-2{ grid-template-columns: 1fr !important; }
+}
+/* Inputs/selects inside parameter tables */
+#params-section table input,
+#params-section table select{ width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font:inherit; box-sizing:border-box }
+
+/* Checkbox style for Function Check in form */
+#func-section input.flag{ width:18px; height:18px; accent-color:#22c55e; cursor:pointer }
+/* Only the check mark is green; keep cell background normal */
+#func-section td:has(input.flag:checked){ background:transparent !important }
+
+/* Header styling similar to sample */
+table.funcchk thead .hdr1 th{ background:#c8d8f0; font-weight:600; text-align:center; }
+table.funcchk thead .hdr2 th{ background:#eef4ff; font-weight:600; text-align:center; }
+
+/* Center text inside all certificate tables (Consistency only) */
+.cert table th,
+.cert table td{ text-align:center; vertical-align:middle; }
+
+/* Center inputs in form tables too */
+#func-section table.mini th,#func-section table.mini td,
+#params-section table.mini th,#params-section table.mini td{ text-align:center; vertical-align:middle; }
+
+/* Green checkbox style for PDF/preview Function Check */
+.cb{ display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border:1px solid #9ca3af; border-radius:3px; line-height:1; font-weight:700; font-size:11px; vertical-align:middle; }
+.cb.ok{ background:#22c55e; color:#fff; border-color:#22c55e; }
+.cb.off{ background:#fff; color:transparent; }
+/* ensure checkbox box centers inside table cell */
+.tcenter .cb{ margin:0 auto; }
+
+/* --- Photo symmetry (Consistency only) --- */
+.cert .photos{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; align-items:stretch }
+.cert .photos img{ display:block; width:100%; height:58mm; object-fit:cover; object-position:center; border:1px solid var(--border); border-radius:2px; background:#fff }
+.paper.pdf .photos img{ height:58mm !important; object-fit:cover; object-position:center }
+
+/* App header theme (match pH) */
+.app-header{ background:linear-gradient(135deg,#1e4ef5,#0e38e5); color:#fff; border-bottom:none; box-shadow:0 10px 24px rgba(13,56,229,.25); border-bottom-left-radius:18px; border-bottom-right-radius:18px; padding-bottom:16px; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; gap:4px }
+.app-header::before,.app-header::after{content:""; position:absolute; border-radius:50%; pointer-events:none; filter:blur(14px)}
+.app-header::before{left:-60px; top:-60px; width:160px; height:160px; background:radial-gradient(closest-side, rgba(255,255,255,.18), transparent 70%)}
+.app-header::after{right:-70px; bottom:-70px; width:200px; height:200px; background:radial-gradient(closest-side, rgba(255,255,255,.14), transparent 70%)}
+.app-header .brand{ background:none; border:none; color:#fff; padding:0; border-radius:0; font-weight:900; font-size:clamp(18px,5.2vw,22px); text-shadow:0 2px 12px rgba(0,0,0,.25) }
+.app-header .title{ color:#dbe9ff; font-weight:700; letter-spacing:.3px; text-shadow:0 1px 0 rgba(0,0,0,.12); position:relative; font-size:13px }
+.app-header .title::after{ content:'consistency'; display:block; margin-top:2px }

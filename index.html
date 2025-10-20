@@ -1,0 +1,501 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto Report - pH Calibration Certificate</title>
+  <link rel="stylesheet" href="assets/ph/style.css" />
+  <link rel="stylesheet" href="assets/ph/custom.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- html2pdf bundle (html2canvas + jsPDF). For offline, vendor later if needed. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script defer src="assets/config.js"></script>
+  <script defer src="assets/ph/ph.js"></script>
+  <script defer src="assets/ph/custom.js"></script>
+  <!-- Google Identity Services for OAuth (Drive upload) -->
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/logo_nps.svg" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script defer src="assets/pwa.js"></script>
+  <meta name="description" content="Web app to generate pH calibration certificate PDFs from form inputs." />
+  <meta name="robots" content="noindex" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+  <!-- Landing page (report selection) -->
+  <section id="landing" class="landing">
+    <div class="landing-wrap">
+      <div class="landing-head">
+        <div class="brand">Auto Report</div>
+        <div class="sub">Analyzer Team Report</div>
+      </div>
+      <div class="card-grid">
+        <article class="card highlight">
+          <div class="card-icon">pH</div>
+          <h3 class="card-title">Calibration Certificate of pH Measurement</h3>
+          <p class="card-desc">กรอกแบบฟอร์มเพื่อสร้างเป็นไฟล์ PDF</p>
+          <button id="choose-ph" class="primary">เริ่มใช้งาน</button>
+        </article>
+        <article class="card highlight">
+          <div class="card-icon">C</div>
+          <h3 class="card-title">Calibration Certificate of Conductivity Measurement</h3>
+          <p class="card-desc">กรอกแบบฟอร์มเพื่อสร้างเป็นไฟล์ PDF</p>
+          <a href="conductivity.html"><button class="primary" type="button">เริ่มใช้งาน</button></a>
+        </article>
+        <article class="card highlight">
+          <div class="card-icon">CS</div>
+          <h3 class="card-title">Verify Certificate of Consistency Measurement</h3>
+          <p class="card-desc">กรอกแบบฟอร์มเพื่อสร้างเป็นไฟล์ PDF</p>
+          <a href="consistency.html"><button class="primary" type="button">เริ่มใช้งาน</button></a>
+        </article>
+        <article class="card disabled">
+          <div class="card-icon">T</div>
+          <h3 class="card-title">Temperature Report</h3>
+          <p class="card-desc">Coming soon</p>
+          <button class="secondary" disabled>Coming soon</button>
+        </article>
+        <article class="card disabled">
+          <div class="card-icon">P</div>
+          <h3 class="card-title">Pressure Report</h3>
+          <p class="card-desc">Coming soon</p>
+          <button class="secondary" disabled>Coming soon</button>
+        </article>
+      </div>
+      <div class="landing-foot">Works offline • Generates PDF instantly</div>
+    </div>
+  </section>
+
+  <!-- App view -->
+  <div id="app-view" class="app hidden">
+  <header class="app-header">
+    <div class="brand">Auto Report</div>
+    <div class="title">Calibration Certificate of pH Measurement</div>
+    <div class="actions">
+      <button id="back-home" type="button" title="Back">Home</button>
+      <button id="btn-load-demo" type="button">Load Demo</button>
+      <button id="btn-save-json" type="button">Save JSON</button>
+      <label class="import-json">
+        <input id="input-load-json" type="file" accept="application/json" hidden />
+        <span class="button-like">Import JSON</span>
+      </label>
+      <button id="btn-preview" type="button">Preview</button>
+      <button id="btn-generate" class="primary" type="button">Save as PDF</button>
+    </div>
+  </header>
+
+  <main class="layout single">
+    <section class="panel form-panel">
+      <h2>Form</h2>
+      <form id="data-form">
+        <div id="form-bar" class="form-bar">
+          <!-- Docked action bar (moved from header by JS) -->
+          <div id="form-actions" class="form-actions"></div>
+          <div class="form-tabs">
+            <button type="button" data-jump="#doc-section">Document</button>
+            <button type="button" data-jump="#xmtr-section">XMTR</button>
+            <button type="button" data-jump="#ref-section">Reference</button>
+            <button type="button" data-jump="#cal-section">Calibration</button>
+            <button type="button" data-jump="#sign-section">Sign</button>
+            <button type="button" data-jump="#photos-section">Photos</button>
+          </div>
+        </div>
+
+        <details open id="doc-section">
+          <summary>Document Info</summary>
+          <div class="grid g-3">
+            <label>Certificate No.
+              <input name="certificateNo" placeholder="e.g. AC/2025/0001" />
+            </label>
+            <label>Calibrate Date
+              <input name="calibrateDate" type="date" />
+            </label>
+          </div>
+        </details>
+
+        <details open id="xmtr-section">
+          <summary>XMTR INFO</summary>
+          <div class="grid g-3">
+            <label>Tag No.
+              <select name="tagNo">
+                <option value="">Select…</option>
+                <option>422QT377</option>
+                <option>432QT049</option>
+                <option>432QT074</option>
+                <option>432QT086</option>
+                <option>432QT134</option>
+                <option>432QT139</option>
+                <option>432QT170</option>
+                <option>432QT170.1</option>
+                <option>432QT175</option>
+                <option>432QT202</option>
+                <option>432QT274</option>
+                <option>432QT275</option>
+                <option>432QT337</option>
+                <option>432QT347</option>
+                <option>432QT401</option>
+              </select>
+            </label>
+            <label>Tag Name
+              <input name="tagName" />
+            </label>
+            <label>Location
+              <input name="location" />
+            </label>
+            <label>Maker
+              <input name="maker" />
+            </label>
+            <label>Sensor Model
+              <input name="sensorModel" />
+            </label>
+            <label>Sensor Serial No.
+              <input name="sensorSerial" />
+            </label>
+            <label>Transmitter Model
+              <input name="transmitterModel" />
+            </label>
+            <label>Transmitter Serial No.
+              <input name="transmitterSerial" />
+            </label>
+            <label>Range (min)
+              <input name="rangeMin" type="number" step="any" />
+            </label>
+            <label>Range (max)
+              <input name="rangeMax" type="number" step="any" />
+            </label>
+            <label>Unit
+              <input name="unit" value="pH" />
+            </label>
+            <label>Accept Error
+              <input name="acceptError" placeholder="e.g. 0.5 pH or % of reading" />
+            </label>
+            <div class="table-controls" style="grid-column:1 / -1; margin-top:6px">
+              <button id="btn-update-tag" type="button">Update preset for this Tag</button>
+            </div>
+          </div>
+        </details>
+
+        <details open id="ref-section">
+          <summary>pH Reference Data</summary>
+          <div class="grid g-3">
+            <label>Solution Type
+              <input name="solutionType" placeholder="e.g. Buffer" />
+            </label>
+            <label>Constants (Slope)
+              <input name="slope" type="number" step="any" />
+            </label>
+            <label>Offset
+              <input name="offset" type="number" step="any" />
+            </label>
+          </div>
+
+          <table class="mini editable" id="buffer-table">
+            <colgroup>
+              <col style="width:44%">
+              <col style="width:28%">
+              <col style="width:12%">
+              <col style="width:16%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Equipment</th>
+                <th>Brand&Model</th>
+                <th>Serial No.</th>
+                <th>Exp. Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows added by script.js -->
+            </tbody>
+          </table>
+        </details>
+
+        <details open id="cal-section">
+          <summary>Calibration Record</summary>
+
+          <div class="grid g-3 mt-8">
+            <label>Calibration Result
+              <select name="calResult">
+                <option value="Calibrated">Calibrated</option>
+                <option value="Uncalibrated">Uncalibrated</option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Reading inputs (buffers fixed 4,7,10). Calibrate table is appended after Found table. -->
+          <div class="mt-8">
+            <table class="mini" id="cal-inputs-found">
+              <colgroup>
+                <col style="width:30%">
+                <col style="width:70%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Buffer (pH)</th>
+                  <th>As Found - Reading (pH)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>4</td>
+                  <td><input type="number" step="any" name="found4" placeholder="e.g. 3.98" /></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><input type="number" step="any" name="found7" placeholder="e.g. 6.23" /></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td><input type="number" step="any" name="found10" placeholder="e.g. 9.97" /></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="height:8px"></div>
+            <table class="mini" id="cal-inputs-cal">
+              <colgroup>
+                <col style="width:30%">
+                <col style="width:70%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Buffer (pH)</th>
+                  <th>As Calibrate - Reading (pH)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>4</td>
+                  <td><input type="number" step="any" name="cal4" placeholder="e.g. 4.01" /></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><input type="number" step="any" name="cal7" placeholder="e.g. 7.03" /></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td><input type="number" step="any" name="cal10" placeholder="e.g. 10.01" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details open id="sign-section">
+          <summary>Signers</summary>
+          <div class="grid g-3">
+            <label>Calibrated by <span id="tech-role-inline" class="hint"></span>
+              <select name="technician" id="technician-select"></select>
+            </label>
+            <label>Approved by (Engineer)
+              <select name="approver" id="approver-select"></select>
+            </label>
+            <label>Sign Date
+              <input name="signDate" type="date" />
+            </label>
+          </div>
+          <label class="block">Remarks
+            <textarea name="remarks" rows="3"></textarea>
+          </label>
+        </details>
+
+        <details open id="photos-section">
+          <summary>Photos (3)</summary>
+          <div class="grid g-3">
+            <label>Photo 1
+              <input type="file" name="photo1" accept="image/*" />
+              <img id="thumb-photo1" class="thumb-preview" alt="preview1" style="display:none" />
+            </label>
+            <label>Photo 2
+              <input type="file" name="photo2" accept="image/*" />
+              <img id="thumb-photo2" class="thumb-preview" alt="preview2" style="display:none" />
+            </label>
+            <label>Photo 3
+              <input type="file" name="photo3" accept="image/*" />
+              <img id="thumb-photo3" class="thumb-preview" alt="preview3" style="display:none" />
+            </label>
+          </div>
+        </details>
+      </form>
+    </section>
+
+    <section class="panel preview-panel hidden">
+      <h2>Preview</h2>
+      <div id="certificate" class="cert paper">
+        <div class="cert-header">
+          <div class="logo" id="logo-box"><img src="assets/logo_nps.svg" alt="logo" style="width:100%;height:100%;object-fit:contain;display:block;"/></div>
+          <div class="cert-title">Calibration Certificate<br>of pH Measurement</div>
+          <div class="cert-sub">
+            <span>Certificate no.: <span data-bind="certificateNo"></span></span>
+            <span>Calibrate date: <span data-bind="calibrateDate"></span></span>
+          </div>
+        </div>
+
+        <section class="block">
+          <div class="block-title">XMTR INFO</div>
+          <table class="kv">
+            <colgroup>
+              <col class="kv-th"><col class="kv-td"><col class="kv-th"><col class="kv-td">
+            </colgroup>
+            <tbody>
+              <tr>
+                <th>Tag No.</th><td data-bind="tagNo"></td>
+                <th>Tag Name</th><td data-bind="tagName"></td>
+              </tr>
+              <tr>
+                <th>Location</th><td data-bind="location"></td>
+                <th>Maker</th><td data-bind="maker"></td>
+              </tr>
+              <tr>
+                <th>Sensor Model</th><td data-bind="sensorModel"></td>
+                <th>Serial No.</th><td data-bind="sensorSerial"></td>
+              </tr>
+              <tr>
+                <th>Transmitter Model</th><td data-bind="transmitterModel"></td>
+                <th>Serial No.</th><td data-bind="transmitterSerial"></td>
+              </tr>
+              <tr>
+                <th>Range</th><td><span data-bind="rangeMin"></span> - <span data-bind="rangeMax"></span> <span data-bind="unit"></span></td>
+                <th>Accept Error</th><td data-bind="acceptError"></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="block">
+          <div class="block-title">pH Reference Data</div>
+          <table class="kv">
+            <colgroup>
+              <col class="kv-th"><col class="kv-td"><col class="kv-th"><col class="kv-td">
+            </colgroup>
+            <tbody>
+              <tr>
+                <th>Solution Type</th><td data-bind="solutionType"></td>
+                <th class="no-colon">Constants</th><td></td>
+              </tr>
+              <tr>
+                <th></th><td></td>
+                <th>Slope</th><td data-bind="slope"></td>
+              </tr>
+              <tr>
+                <th></th><td></td>
+                <th>Offset</th><td data-bind="offset"></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="block">
+          <div class="block-title">pH Reference Data</div>
+          <table class="tgrid ref">
+            <colgroup>
+              <col class="col-eq" style="width:44%">
+              <col class="col-brand" style="width:28%">
+              <col class="col-serial" style="width:12%">
+              <col class="col-exp" style="width:16%">
+            </colgroup>
+            <thead>
+              <tr><th>Equipment</th><th>Brand&Model</th><th>Serial No.</th><th>Exp. Date</th></tr>
+            </thead>
+            <tbody id="buffer-rows"></tbody>
+          </table>
+        </section>
+
+        <section class="block" id="calibration-record">
+          <div class="block-title">Calibrate Record</div>
+          <div class="cal-result-line">Calibrate Result : <strong data-bind="calResult"></strong></div>
+          <div class="cal-wrap">
+            <div class="cal-split">
+              <table class="cal2 left">
+                <colgroup>
+                  <col style="width:24%"><col style="width:26%"><col style="width:25%"><col style="width:25%">
+                </colgroup>
+                <thead>
+                  <tr class="grp"><th colspan="4">As Found</th></tr>
+                  <tr class="sub"><th>Buffer</th><th>Reading</th><th colspan="2">Absolute Error</th></tr>
+                  <tr class="units"><th>pH</th><th>pH</th><th>%</th><th>pH</th></tr>
+                </thead>
+                <tbody id="cal-left"></tbody>
+              </table>
+              <table class="cal2 right">
+                <colgroup>
+                  <col style="width:24%"><col style="width:26%"><col style="width:25%"><col style="width:25%">
+                </colgroup>
+                <thead>
+                  <tr class="grp"><th colspan="4">As Calibrate</th></tr>
+                  <tr class="sub"><th>Buffer</th><th>Reading</th><th colspan="2">Absolute Error</th></tr>
+                  <tr class="units"><th>pH</th><th>pH</th><th>%</th><th>pH</th></tr>
+                </thead>
+                <tbody id="cal-right"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="block" id="photos-block">
+          <div class="block-title">Photos</div>
+          <div class="photos">
+            <img id="img1" alt="photo1" />
+            <img id="img2" alt="photo2" />
+            <img id="img3" alt="photo3" />
+          </div>
+        </section>
+
+        <section class="block" id="end-of-calibration">
+          <div class="block-title">End of Calibration</div>
+          <table class="kv">
+            <colgroup>
+              <col class="kv-th"><col class="kv-td"><col class="kv-th"><col class="kv-td">
+            </colgroup>
+            <tbody>
+              <tr>
+                <th>Calibrated by</th><td><span data-bind="technician"></span><div class="hint" data-bind="technicianPosition">Technician</div></td>
+                <th>Approved by</th><td><span data-bind="approver"></span><div class="hint">Engineer</div></td>
+              </tr>
+              <tr>
+                <th>Date</th><td data-bind="signDate"></td>
+                <th>Remarks</th><td data-bind="remarks"></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Auto Report (Local HTML) • Export PDF offline</span>
+  </footer>
+  </div>
+  <!-- Mobile sticky CTA bar -->
+  <div id="mobile-cta" class="mobile-cta">
+    <button id="cta-home" type="button" class="ghost icon" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></button>
+    <button id="cta-preview" type="button" class="ghost icon" title="Preview" aria-label="Preview"><i class="fa-solid fa-eye"></i></button>
+    <button id="cta-save" type="button" class="primary icon" title="Save as PDF" aria-label="Save as PDF"><i class="fa-solid fa-download"></i></button>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="preview-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Preview">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog">
+      <header class="modal-head">
+        <div class="mh-title">Preview</div>
+        <button id="preview-close" class="modal-close" type="button" aria-label="Close">Close</button>
+      </header>
+      <div class="modal-body">
+        <div id="preview-mount"></div>
+      </div>
+      <footer class="modal-foot">
+        <button id="preview-close-2" type="button">Close</button>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
+

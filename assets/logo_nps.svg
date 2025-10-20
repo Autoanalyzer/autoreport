@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+  <defs>
+    <style>
+      .bg{fill:#ffeb00}
+      .ink{fill:#18214d}
+      .text{fill:#18214d;font-family:'Segoe UI Black','Arial Black','Segoe UI',Arial,Helvetica,sans-serif;font-weight:900}
+      .tag{fill:#18214d;font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-weight:700}
+    </style>
+  </defs>
+  <!-- Yellow square background -->
+  <rect class="bg" x="0" y="0" width="360" height="360"/>
+
+  <!-- NPS letters -->
+  <text x="180" y="170" text-anchor="middle" class="text" font-size="140" letter-spacing="2">NPS</text>
+
+  <!-- tagline -->
+  <text x="180" y="220" text-anchor="middle" class="tag" font-size="18">NATIONAL POWER SUPPLY</text>
+
+  <!-- smile arc -->
+  <path d="M60 250c30 26 72 42 120 42s90-16 120-42" fill="none" stroke="#18214d" stroke-width="14" stroke-linecap="round"/>
+</svg>
