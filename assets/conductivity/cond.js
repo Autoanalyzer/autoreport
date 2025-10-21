@@ -356,13 +356,16 @@ async function cond_reserveCertViaDriveCounter(){
     return {year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`};
   }catch(_){ return null; }
 }
+let __cond_reserving=false;
 async function prepareCertificateNoBeforeSave(){
   try{
+    if(__cond_reserving) return null; __cond_reserving = true;
     let res=await cond_reserveCertViaAppsScript();
     if(!res) res=await cond_reserveCertViaDriveCounter();
     if(!res){ const y=new Date().getFullYear(); const k='cond-cert-seq-'+y; let cur=Number(localStorage.getItem(k)||'149'); const num=cur+1; try{ localStorage.setItem(k,String(num)); }catch(_){ } res={year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`}; }
     state.certificateNo=res.certificateNo; try{ const f=document.getElementById('data-form'); const el=f&&f.elements&&f.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); return res;
   }catch(_){ return null; }
+  finally { __cond_reserving = false; }
 }
 
 // Override default generate to reserve number first
@@ -371,10 +374,26 @@ try{
   generateAndUploadPDF = async function(){ try{ await prepareCertificateNoBeforeSave(); }catch(_){ } return __orig_generateAndUploadPDF.apply(this, arguments); };
 }catch(_){ }
 
-// Safer bump and ensure overrides
+// Safer bump and ensure overrides (guard double bump within same save)
 try{
+  let __cond_last_bump_ts = 0;
   const __old_bump = bumpCertificateNoAfterSave;
-  bumpCertificateNoAfterSave = function(){ try{ const y=new Date().getFullYear(); const s=String(state.certificateNo||''); const m=/^AC\/(\d{4})\/(\d{3,})$/.exec(s); const used = m?Number(m[2]): (function(){ let base=149; try{ const v=localStorage.getItem('cond-cert-seq-'+y); if(v!=null&&v!==''&&!isNaN(+v)) base=Number(v);}catch(_){ } return base+1; })(); try{ localStorage.setItem('cond-cert-seq-'+y, String(used)); }catch(_){ } const next=used+1; state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`; try{ const form=document.getElementById('data-form'); const el=form&&form.elements&&form.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); }catch(_){ } };
+  bumpCertificateNoAfterSave = function(){
+    try{
+      const now = Date.now();
+      if (now - __cond_last_bump_ts < 800) return; // prevent double-increment
+      __cond_last_bump_ts = now;
+      const y=new Date().getFullYear();
+      const s=String(state.certificateNo||'');
+      const m=/^AC[\/\- ]?(\d{4})[\/\- ]?(\d{3,})$/i.exec(s);
+      const used = m?Number(m[2]): (function(){ let base=149; try{ const v=localStorage.getItem('cond-cert-seq-'+y); if(v!=null&&v!==''&&!isNaN(+v)) base=Number(v);}catch(_){ } return base+1; })();
+      try{ localStorage.setItem('cond-cert-seq-'+y, String(used)); }catch(_){ }
+      const next=used+1;
+      state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`;
+      try{ const form=document.getElementById('data-form'); const el=form&&form.elements&&form.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ }
+      saveToLocal(); updatePreview();
+    }catch(_){ }
+  };
 }catch(_){ }
 try{
   const __old_ensure = ensureCertificateNo;

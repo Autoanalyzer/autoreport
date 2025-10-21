@@ -391,19 +391,25 @@ async function cons_reserveCertViaDriveCounter(){
     return {year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`};
   }catch(_){ return null; }
 }
+let __cons_reserving = false;
 async function cons_prepareCertificateNoBeforeSave(){
   try{
+    if(__cons_reserving) return null; __cons_reserving = true;
     let res=await cons_reserveCertViaAppsScript();
     if(!res) res=await cons_reserveCertViaDriveCounter();
     if(!res){ const y=new Date().getFullYear(); let base=149; try{ const v=localStorage.getItem(consCertKey(y)); if(v!=null && v!=='' && !isNaN(+v)) base=Number(v);}catch(_){ } const num=base+1; try{ localStorage.setItem(consCertKey(y), String(num)); }catch(_){ } res={year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`}; }
     state.certificateNo=res.certificateNo; try{ const f=document.getElementById('data-form'); const el=f&&f.elements&&f.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } updatePreview(); return res;
   }catch(_){ return null; }
+  finally { __cons_reserving = false; }
 }
 // Override default generate to reserve number first
 try{
   const __orig_generateAndUploadPDF = generateAndUploadPDF;
   generateAndUploadPDF = async function(){ try{ await cons_prepareCertificateNoBeforeSave(); }catch(_){ } return __orig_generateAndUploadPDF.apply(this, arguments); };
 }catch(_){ }
+
+// Guard against double-bump within same save
+(function(){ try{ let __cons_last_bump_ts = 0; const __orig = bumpCertificateNoAfterSave; bumpCertificateNoAfterSave = function(){ const now=Date.now(); if(now-__cons_last_bump_ts<800) return; __cons_last_bump_ts = now; return __orig.apply(this, arguments); }; }catch(_){ } })();
 
 // ----- Parameter templates & builders -----
 const PARAM_TEMPLATES={

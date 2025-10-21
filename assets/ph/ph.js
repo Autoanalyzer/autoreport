@@ -1229,19 +1229,25 @@ async function ph_reserveCertViaDriveCounter(){
     return {year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`};
   }catch(_){ return null; }
 }
+let __ph_reserving = false;
 async function ph_prepareCertificateNoBeforeSave(){
   try{
+    if(__ph_reserving) return null; __ph_reserving = true;
     let res=await ph_reserveCertViaAppsScript();
     if(!res) res=await ph_reserveCertViaDriveCounter();
     if(!res){ const y=new Date().getFullYear(); const key=certSeqStorageKey(y); let cur=Number(localStorage.getItem(key)||'149'); const num=cur+1; try{ localStorage.setItem(key,String(num)); }catch(_){ } res={year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`}; }
     state.certificateNo=res.certificateNo; try{ const f=document.getElementById('data-form'); const el=f&&f.elements&&f.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); return res;
   }catch(_){ return null; }
+  finally { __ph_reserving = false; }
 }
 // Override default generate to reserve number first
 try{
   const __orig_generatePDF = generatePDF;
   generatePDF = async function(){ try{ await ph_prepareCertificateNoBeforeSave(); }catch(_){ } return __orig_generatePDF.apply(this, arguments); };
 }catch(_){ }
+
+// Guard against double-bump within same save
+(function(){ try{ let __ph_last_bump_ts = 0; const __orig = bumpCertificateNoAfterSave; bumpCertificateNoAfterSave = function(){ const now=Date.now(); if(now-__ph_last_bump_ts<800) return; __ph_last_bump_ts = now; return __orig.apply(this, arguments); }; }catch(_){ } })();
 
 
 
