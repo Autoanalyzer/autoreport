@@ -675,7 +675,7 @@ async function waitImages(el){
 // Certificate number helpers: AC/YYYY/NNNN
 function certSeqStorageKey(year){ return 'ph-cert-seq-' + year; }
 function formatCertNo(year, num){ return `AC/${year}/${String(num).padStart(4,'0')}`; }
-function parseCertNo(str){ const m = /^AC[\/\- ]?(\d{4})[\/\- ]?(\d{3,})$/i.exec(String(str||'').trim()); return m ? { year: Number(m[1]), num: Number(m[2]) } : null; }
+function parseCertNo(str){ const m = /^AC\/(\d{4})\/(\d{3,})$/i.exec(String(str||'').trim()); return m ? { year: Number(m[1]), num: Number(m[2]) } : null; }
 function getNextSeq(year){ let base = 149; try{ const v = localStorage.getItem(certSeqStorageKey(year)); if (v!=null && v!=='' && !isNaN(+v)) base = Number(v); }catch(_){ } return base + 1; }
 function markSeqUsed(year, num){ try{ const key = certSeqStorageKey(year); const cur = Number(localStorage.getItem(key) || '149'); if (num > cur) localStorage.setItem(key, String(num)); }catch(_){ } }
 function ensureCertificateNo(){
@@ -718,7 +718,7 @@ async function generatePDF(){
   const targetH = (297 - topPadMm - bottomPadMm) * pxPerMm;
  // กันเหนียวไม่ให้ล้นจนเกิดหน้าว่าง
 
-  const minScale = 0.80, maxScale = 1.05, upperBound = 1.20;
+  const minScale = 0.84, maxScale = 1.05, upperBound = 1.20;
   const measureAt = async (s) => { root.style.setProperty('--pdf-scale', String(s)); await new Promise(r => requestAnimationFrame(r)); return el.getBoundingClientRect().height; };
   let lo = minScale, hi = maxScale;
   const current = parseFloat(getComputedStyle(root).getPropertyValue('--pdf-scale')) || 0.955;
@@ -726,7 +726,7 @@ async function generatePDF(){
   let hAtHi = await measureAt(hi);
   while (hAtHi < targetH && hi < upperBound) { const nextHi = Math.min(upperBound, hi * 1.06); if (Math.abs(nextHi - hi) < 0.0008) break; hi = nextHi; hAtHi = await measureAt(hi); }
   if (hAtHi > targetH){ for (let i=0;i<10;i++){ const mid = (lo + hi) / 2; const h = await measureAt(mid); if (h > targetH) hi = mid; else lo = mid; if (Math.abs(hi - lo) < 0.0008) break; } } else { lo = hi; }
-  const scale = lo * 0.990;
+  const scale = lo * 0.992;
 root.style.setProperty('--pdf-scale', String(scale));
   const opt = {
     margin: [0,0,0,0],
@@ -735,8 +735,7 @@ root.style.setProperty('--pdf-scale', String(scale));
     // Force capture from the page origin to avoid vertical offset
     html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    // Allow page to naturally break; avoid-all can clip bottom content
-    pagebreak: { mode: ['css','legacy'] }
+    pagebreak: { mode: ['avoid-all','css','legacy'] }
   };
   await new Promise(r => setTimeout(r, 60));
   try {
@@ -751,12 +750,10 @@ root.style.setProperty('--pdf-scale', String(scale));
       .get('pdf')
       .then(pdf => {
         try {
-          // Keep multi-page output to avoid cutting bottom sections (e.g. End of Calibration)
-          // If a truly blank trailing page appears, we can enhance later to detect and remove only that page.
-          const total = typeof pdf.getNumberOfPages === 'function'
-            ? pdf.getNumberOfPages()
-            : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1);
-          try{ const total = typeof pdf.getNumberOfPages === " function\ ? pdf.getNumberOfPages() : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1); for (let i = total; i >= 2; i--) { pdf.deletePage(i); } }catch(_){}
+          // Occasionally html2pdf/jsPDF appends an extra blank page.
+          // This certificate is single-page by design, so trim trailing pages.
+          const total = typeof pdf.getNumberOfPages === 'function' ? pdf.getNumberOfPages() : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1);
+          for (let i = total; i >= 2; i--) { pdf.deletePage(i); }
         } catch (_) { /* noop */ }
         pdfBlob = pdf.output('blob');
       });
@@ -1188,92 +1185,12 @@ if (document.readyState === 'loading') { document.addEventListener('DOMContentLo
 // --- Post-fix for Thai text (override any garbled literals) ---
 function __fixThaiText(){ try{ /* no-op: localization applied in localizeThai() */ }catch(_){ } }
 
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', ()=> setTimeout(__fixThaiText, 0), { once:true }); }
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', ()=> setTimeout(__fixThaiText, 0), { once:true }); }
 else { setTimeout(__fixThaiText, 0); }
 
 
 
 
-// --- Cross-device certificate no. sync (GAS/Drive counter) ---
-async function ph_reserveCertViaAppsScript(){
-  try{
-    if(!GAS_URL) return null;
-    const y=new Date().getFullYear();
-    const resp=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({op:'reserveCertNo',secret:GAS_SECRET||undefined,year:y,prefix:'AC',folderId:GAS_FOLDER_ID||undefined,module:'ph'})});
-    const text=await resp.text(); let j={}; try{ j=JSON.parse(text);}catch(_){ }
-    if(!resp.ok) return null;
-    const n=(j&&j.num)?Number(j.num):null; if(!n||!isFinite(n)) return null;
-    return {year:y,num:n,certificateNo:`AC/${y}/${String(n).padStart(4,'0')}`};
-  }catch(_){ return null; }
-}
-async function ph_reserveCertViaDriveCounter(){
-  try{
-    const token=await getGoogleAccessToken();
-    const y=new Date().getFullYear();
-    const name=`cert-seq-ph-${y}.json`;
-    const q=`name='${name.replace(/'/g,"\\'")}' and '${DRIVE_FOLDER_ID}' in parents and trashed=false`;
-    let r=await fetch('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id,name)&pageSize=1&spaces=drive',{headers:{Authorization:'Bearer '+token}});
-    let j={files:[]}; try{ j=await r.json(); }catch(_){ }
-    let id=j.files&&j.files[0]&&j.files[0].id;
-    if(!id){
-      const meta={name,parents:[DRIVE_FOLDER_ID],mimeType:'application/json'};
-      const boundary='m_'+Math.random().toString(36).slice(2);
-      const body=new Blob([
-        `--${boundary}\r\n`+'Content-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+`\r\n`+
-        `--${boundary}\r\n`+'Content-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({last:149})+`\r\n`+
-        `--${boundary}--`
-      ],{type:'multipart/related; boundary='+boundary});
-      const cr=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body});
-      const cj=await cr.json(); id=cj&&cj.id; if(!id) return null;
-    }
-    let last=149; try{ const gr=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,{headers:{Authorization:'Bearer '+token}}); const tx=await gr.text(); const o=JSON.parse(tx||'{}'); if(typeof o.last==='number') last=o.last; }catch(_){ }
-    const num=(isFinite(last)?last:149)+1;
-    try{ await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json; charset=UTF-8'},body:JSON.stringify({last:num})}); }catch(_){ }
-    return {year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`};
-  }catch(_){ return null; }
-}
-let __ph_reserving = false;
-async function ph_prepareCertificateNoBeforeSave(){
-  try{
-    if(__ph_reserving) return null; __ph_reserving = true;
-    let res=await ph_reserveCertViaAppsScript();
-    if(!res) res=await ph_reserveCertViaDriveCounter();
-    if(!res){ const y=new Date().getFullYear(); const key=certSeqStorageKey(y); let cur=Number(localStorage.getItem(key)||'149'); const num=cur+1; try{ localStorage.setItem(key,String(num)); }catch(_){ } res={year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`}; }
-    state.certificateNo=res.certificateNo; try{ const f=document.getElementById('data-form'); const el=f&&f.elements&&f.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); return res;
-  }catch(_){ return null; }
-  finally { __ph_reserving = false; }
-}
-// Override default generate to reserve number first
-try{
-  const __orig_generatePDF = generatePDF;
-  generatePDF = async function(){ try{ await ph_prepareCertificateNoBeforeSave(); }catch(_){ } return __orig_generatePDF.apply(this, arguments); };
-}catch(_){ }
-
-// Guard against double-bump within same save
-(function(){ try{ let __ph_last_bump_ts = 0; const __orig = bumpCertificateNoAfterSave; bumpCertificateNoAfterSave = function(){ const now=Date.now(); if(now-__ph_last_bump_ts<800) return; __ph_last_bump_ts = now; return __orig.apply(this, arguments); }; }catch(_){ } })();
-
-// Fallback downloader when Drive quota exceeded
-(function(){
-  function downloadBlob(blob, filename){ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1200); }catch(_){ } }
-  try{
-    if (typeof uploadToDriveQuiet === 'function'){
-      const __orig_uploadToDriveQuiet = uploadToDriveQuiet;
-      uploadToDriveQuiet = async function(blob, filename){
-        try{ return await __orig_uploadToDriveQuiet(blob, filename); }
-        catch(err){ try{ if(blob) downloadBlob(blob, filename); }catch(_){ } return { localDownload:true }; }
-      };
-    }
-  }catch(_){ }
-  try{
-    if (typeof uploadViaAppsScript === 'function'){
-      const __orig_uploadViaAppsScript = uploadViaAppsScript;
-      uploadViaAppsScript = async function(blob, filename){
-        try{ return await __orig_uploadViaAppsScript(blob, filename); }
-        catch(err){ try{ if(blob) downloadBlob(blob, filename); }catch(_){ } return { localDownload:true }; }
-      };
-    }
-  }catch(_){ }
-})();
 
 
 
