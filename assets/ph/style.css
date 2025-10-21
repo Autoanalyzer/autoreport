@@ -188,7 +188,14 @@ tbody tr:nth-child(odd) td{background:#fafcff}
 /* กันการแตกหน้า/แทรกหน้าว่าง */
 .paper.pdf,
 .paper.pdf *{ page-break-inside:avoid; }
-.paper.pdf{ padding: 4mm 12mm 10mm 12mm; }
+/* Allow JS to fine-tune scale so the whole certificate fits exactly 1 page.
+   Keep visual width at 210mm by compensating the transform scale. */
+.paper.pdf{
+  padding: 4mm 12mm 10mm 12mm;
+  transform: scale(var(--pdf-scale));
+  transform-origin: top left;
+  width: calc(210mm / var(--pdf-scale));
+}
 
 /* ปรับระยะเล็กน้อยให้จบในแผ่นเดียว */
 .paper.pdf .cert-title{font-size:17px}

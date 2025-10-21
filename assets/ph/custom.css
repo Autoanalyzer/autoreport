@@ -51,3 +51,15 @@
   color:#0f2239;
   border-bottom:1px solid #64B5F6;
 }
+
+/* --- PDF tightening for pH layout --- */
+/* Make the pH Reference Data table (equipment list) more compact in PDF */
+.paper.pdf table.tgrid.ref th,
+.paper.pdf table.tgrid.ref td{ font-size:10.25px; padding:3px 5px; }
+.paper.pdf table.ref th{ padding:3px 4px 1px 4px; }
+.paper.pdf table.ref td{ padding:4px 5px 3px 5px; }
+
+/* Cap photo frame height so images never push the signature block */
+.paper.pdf #photos-block{ margin-top:6px !important; }
+.paper.pdf .photos .photo img{ height:52mm !important; object-position:center top; }
+.paper.pdf .photos img{ height:52mm !important; object-fit:cover; object-position:center top; }
