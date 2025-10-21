@@ -750,10 +750,12 @@ root.style.setProperty('--pdf-scale', String(scale));
       .get('pdf')
       .then(pdf => {
         try {
-          // Occasionally html2pdf/jsPDF appends an extra blank page.
-          // This certificate is single-page by design, so trim trailing pages.
-          const total = typeof pdf.getNumberOfPages === 'function' ? pdf.getNumberOfPages() : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1);
-          for (let i = total; i >= 2; i--) { pdf.deletePage(i); }
+          // Keep multi-page output to avoid cutting bottom sections (e.g. End of Calibration)
+          // If a truly blank trailing page appears, we can enhance later to detect and remove only that page.
+          const total = typeof pdf.getNumberOfPages === 'function'
+            ? pdf.getNumberOfPages()
+            : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1);
+          // no page deletion here
         } catch (_) { /* noop */ }
         pdfBlob = pdf.output('blob');
       });
