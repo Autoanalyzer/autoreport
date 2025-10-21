@@ -735,7 +735,8 @@ root.style.setProperty('--pdf-scale', String(scale));
     // Force capture from the page origin to avoid vertical offset
     html2canvas: { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all','css','legacy'] }
+    // Allow page to naturally break; avoid-all can clip bottom content
+    pagebreak: { mode: ['css','legacy'] }
   };
   await new Promise(r => setTimeout(r, 60));
   try {
@@ -1250,6 +1251,29 @@ try{
 
 // Guard against double-bump within same save
 (function(){ try{ let __ph_last_bump_ts = 0; const __orig = bumpCertificateNoAfterSave; bumpCertificateNoAfterSave = function(){ const now=Date.now(); if(now-__ph_last_bump_ts<800) return; __ph_last_bump_ts = now; return __orig.apply(this, arguments); }; }catch(_){ } })();
+
+// Fallback downloader when Drive quota exceeded
+(function(){
+  function downloadBlob(blob, filename){ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1200); }catch(_){ } }
+  try{
+    if (typeof uploadToDriveQuiet === 'function'){
+      const __orig_uploadToDriveQuiet = uploadToDriveQuiet;
+      uploadToDriveQuiet = async function(blob, filename){
+        try{ return await __orig_uploadToDriveQuiet(blob, filename); }
+        catch(err){ try{ if(blob) downloadBlob(blob, filename); }catch(_){ } return { localDownload:true }; }
+      };
+    }
+  }catch(_){ }
+  try{
+    if (typeof uploadViaAppsScript === 'function'){
+      const __orig_uploadViaAppsScript = uploadViaAppsScript;
+      uploadViaAppsScript = async function(blob, filename){
+        try{ return await __orig_uploadViaAppsScript(blob, filename); }
+        catch(err){ try{ if(blob) downloadBlob(blob, filename); }catch(_){ } return { localDownload:true }; }
+      };
+    }
+  }catch(_){ }
+})();
 
 
 

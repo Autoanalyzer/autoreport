@@ -186,9 +186,12 @@ tbody tr:nth-child(odd) td{background:#fafcff}
    Use auto height so JS can measure true content height and fit exactly. */
 /* ==== One-page PDF hard guard ==== */
 /* กันการแตกหน้า/แทรกหน้าว่าง */
-.paper.pdf,
-.paper.pdf *{ page-break-inside:avoid; }
 .paper.pdf{ padding: 4mm 12mm 10mm 12mm; }
+/* Allow automatic page breaks; only protect small units from splitting */
+.paper.pdf .block,
+.paper.pdf table,
+.paper.pdf tr,
+.paper.pdf img{ page-break-inside: avoid; }
 
 /* ปรับระยะเล็กน้อยให้จบในแผ่นเดียว */
 .paper.pdf .cert-title{font-size:17px}
