@@ -153,7 +153,7 @@ function parseRange(str){if(!str)return{};const m=String(str).match(/(-?\d+(?:\.
 async function maybeCreatePresetInteractively(tag){if(!tag)return null;if(!confirm('Create preset for this Tag?'))return null;const brand=prompt('Maker/Brand:','ABB')||'';const model=prompt('Transmitter Model:','TB82')||'';const calRange=prompt('Range (e.g. 0 to 20):','0 to 20')||'';const desc=prompt('Tag Name/Description:','')||'';const sensorModel=prompt('Sensor Model (optional):','')||'';const sensorSerial=prompt('Sensor Serial (optional):','')||'';const transmitterSerial=prompt('Transmitter Serial (optional):','')||'';const acceptError=prompt('Accept Error:','5% (Error of Reading)')||'5% (Error of Reading)';const unit=prompt('Unit:',state.unit||'uS/cm')||(state.unit||'uS/cm');const rng=parseRange(calRange);const p={brand,model,desc,location:state.location||'Pulp2',sensorModel,sensorSerial,transmitterSerial,rangeMin:rng.min,rangeMax:rng.max,unit,acceptError};const db=loadLocalTagPresets();db[tag]=p;saveLocalTagPresets(db);return p}
 function applyTagPreset(tag){if(!tag)return;const db=loadLocalTagPresets();const p=db[tag]||BUILTIN_TAGS[tag];if(!p)return;state.tagNo=tag;state.tagName=p.desc||'';state.location=p.location||'';state.maker=p.brand||'';state.sensorModel=p.sensorModel||'';state.sensorSerial=p.sensorSerial||'';state.transmitterModel=p.model||'';state.transmitterSerial=p.transmitterSerial||'';if(p.rangeMin!==''&&p.rangeMin!=null)state.rangeMin=p.rangeMin;if(p.rangeMax!==''&&p.rangeMax!=null)state.rangeMax=p.rangeMax;state.unit=p.unit||state.unit;state.acceptError=p.acceptError||state.acceptError;fillFormFromState();updatePreview()}
 function saveCurrentTagPreset(){const tag=(state.tagNo||'').trim();if(!tag)return false;const p={brand:state.maker||'',model:state.transmitterModel||'',desc:state.tagName||'',location:state.location||'',sensorModel:state.sensorModel||'',sensorSerial:state.sensorSerial||'',transmitterSerial:state.transmitterSerial||'',rangeMin:state.rangeMin,rangeMax:state.rangeMax,unit:state.unit||'uS/cm',acceptError:state.acceptError||'5% (Error of Reading)'};const db=loadLocalTagPresets();db[tag]=p;saveLocalTagPresets(db);ensureTagOptionInSelect(tag);return true}
-function enhanceTagSelect(){const s=document.querySelector('select[name="tagNo"]');if(!s)return;const db=loadLocalTagPresets();const keys=Array.from(new Set(Object.keys(BUILTIN_TAGS).concat(Object.keys(db)))).sort((a,b)=>String(a).localeCompare(String(b)));s.innerHTML='<option value="">Selectโ€ฆ</option><option value="__new__">+ Add new Tag</option>'+keys.map(k=>`<option value="${k}">${k}</option>`).join('');s.addEventListener('change',async()=>{const v=s.value;if(v==='__new__'){const code=prompt('New Tag No.:','');if(!code){s.value='';return}const tag=String(code).trim();ensureTagOptionInSelect(tag);s.value=tag;state.tagNo=tag;const db=loadLocalTagPresets();fillFormFromState();updatePreview();saveToLocal()}else{applyTagPreset(v);saveToLocal()}});if(state.tagNo){ensureTagOptionInSelect(state.tagNo);s.value=state.tagNo}const btn=document.getElementById('btn-update-tag');if(btn)btn.addEventListener('click',()=>{if(saveCurrentTagPreset())toast('Saved tag preset');}); try{ var wrap=document.querySelector('.table-controls'); if(wrap && !document.getElementById('btn-delete-tag')){ var del=document.createElement('button'); del.id='btn-delete-tag'; del.type='button'; del.textContent='Delete this Tag'; del.style.marginLeft='8px'; wrap.appendChild(del); del.addEventListener('click', function(){ var tag=(state.tagNo||'').trim(); if(!tag){ alert('Please select a Tag first'); return; } var local=loadLocalTagPresets(); if(!local[tag]){ alert('Cannot delete built-in Tag'); return; } if(!confirm('Delete this Tag preset?')) return; if(deleteTagPreset(tag)){ toast('Deleted tag '+tag); } }); } }catch(_){ }}
+function enhanceTagSelect(){const s=document.querySelector('select[name="tagNo"]');if(!s)return;const db=loadLocalTagPresets();const keys=Array.from(new Set(Object.keys(BUILTIN_TAGS).concat(Object.keys(db)))).sort((a,b)=>String(a).localeCompare(String(b)));s.innerHTML='<option value="">Select</option><option value="__new__">+ Add new Tag</option>'+keys.map(k=>`<option value="${k}">${k}</option>`).join('');s.addEventListener('change',async()=>{const v=s.value;if(v==='__new__'){const code=prompt('New Tag No.:','');if(!code){s.value='';return}const tag=String(code).trim();ensureTagOptionInSelect(tag);s.value=tag;state.tagNo=tag;const db=loadLocalTagPresets();fillFormFromState();updatePreview();saveToLocal()}else{applyTagPreset(v);saveToLocal()}});if(state.tagNo){ensureTagOptionInSelect(state.tagNo);s.value=state.tagNo}const btn=document.getElementById('btn-update-tag');if(btn)btn.addEventListener('click',()=>{if(saveCurrentTagPreset())toast('Saved tag preset');}); try{ var wrap=document.querySelector('.table-controls'); if(wrap && !document.getElementById('btn-delete-tag')){ var del=document.createElement('button'); del.id='btn-delete-tag'; del.type='button'; del.textContent='Delete this Tag'; del.style.marginLeft='8px'; wrap.appendChild(del); del.addEventListener('click', function(){ var tag=(state.tagNo||'').trim(); if(!tag){ alert('Please select a Tag first'); return; } var local=loadLocalTagPresets(); if(!local[tag]){ alert('Cannot delete built-in Tag'); return; } if(!confirm('Delete this Tag preset?')) return; if(deleteTagPreset(tag)){ toast('Deleted tag '+tag); } }); } }catch(_){ }}
 
 // --- Preview modal ---
 function ensurePreviewModal(){
@@ -196,6 +196,9 @@ async function openPreviewModal(){
 function makeBaseFilename(){const tag=(state.tagNo||'TAG').replace(/[^\w\-]+/g,'_'),date=state.calibrateDate||new Date().toISOString().slice(0,10);return`Conductivity_${tag}_${date}`}
 async function waitImages(el){const imgs=[...el.querySelectorAll('img')];await Promise.all(imgs.map(i=>i.complete&&i.naturalWidth?null:new Promise(r=>{i.onload=i.onerror=()=>r()})));await Promise.all(imgs.map(i=>i.decode?.().catch(()=>{})))}
 function certSeqKey(){const y=new Date().getFullYear();return'cond-cert-seq-'+y}
+function formatCertNo(year,num){return `AC/${year}/${String(num).padStart(4,'0')}`}
+function parseCertNo(str){const s=String(str||'').trim();const m=/^AC[\/\- ]?(\d{4})[\/\- ]?(\d{3,})$/i.exec(s);return m?{year:Number(m[1]),num:Number(m[2])}:null}
+function getNextSeq(year){let base=149;try{const v=localStorage.getItem('cond-cert-seq-'+year);if(v!=null&&v!==''&&!isNaN(+v))base=Number(v)}catch(_){ }return base+1}
 function bumpCertificateNoAfterSave(){
   try{
     const y = new Date().getFullYear();
@@ -314,6 +317,69 @@ document.addEventListener('click', (e)=>{
 
 
 
+
+// --- Cross-device certificate no. sync (GAS/Drive counter) ---
+async function cond_reserveCertViaAppsScript(){
+  try{
+    if(!GAS_URL) return null;
+    const y=new Date().getFullYear();
+    const resp=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({op:'reserveCertNo',secret:GAS_SECRET||undefined,year:y,prefix:'AC',folderId:GAS_FOLDER_ID||undefined,module:'conductivity'})});
+    const text=await resp.text(); let j={}; try{ j=JSON.parse(text);}catch(_){ }
+    if(!resp.ok) return null;
+    const n=(j&&j.num)?Number(j.num):null; if(!n||!isFinite(n)) return null;
+    return {year:y,num:n,certificateNo:`AC/${y}/${String(n).padStart(4,'0')}`};
+  }catch(_){ return null; }
+}
+async function cond_reserveCertViaDriveCounter(){
+  try{
+    const token=await getGoogleAccessToken();
+    const y=new Date().getFullYear();
+    const name=`cert-seq-cond-${y}.json`;
+    const q=`name='${name.replace(/'/g,"\\'")}' and '${DRIVE_FOLDER_ID}' in parents and trashed=false`;
+    let r=await fetch('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id,name)&pageSize=1&spaces=drive',{headers:{Authorization:'Bearer '+token}});
+    let j={files:[]}; try{ j=await r.json(); }catch(_){ }
+    let id=j.files&&j.files[0]&&j.files[0].id;
+    if(!id){
+      const meta={name,parents:[DRIVE_FOLDER_ID],mimeType:'application/json'};
+      const boundary='m_'+Math.random().toString(36).slice(2);
+      const body=new Blob([
+        `--${boundary}\r\n`+'Content-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+`\r\n`+
+        `--${boundary}\r\n`+'Content-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({last:149})+`\r\n`+
+        `--${boundary}--`
+      ],{type:'multipart/related; boundary='+boundary});
+      const cr=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body});
+      const cj=await cr.json(); id=cj&&cj.id; if(!id) return null;
+    }
+    let last=149; try{ const gr=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,{headers:{Authorization:'Bearer '+token}}); const tx=await gr.text(); const o=JSON.parse(tx||'{}'); if(typeof o.last==='number') last=o.last; }catch(_){ }
+    const num=(isFinite(last)?last:149)+1;
+    try{ await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json; charset=UTF-8'},body:JSON.stringify({last:num})}); }catch(_){ }
+    return {year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`};
+  }catch(_){ return null; }
+}
+async function prepareCertificateNoBeforeSave(){
+  try{
+    let res=await cond_reserveCertViaAppsScript();
+    if(!res) res=await cond_reserveCertViaDriveCounter();
+    if(!res){ const y=new Date().getFullYear(); const k='cond-cert-seq-'+y; let cur=Number(localStorage.getItem(k)||'149'); const num=cur+1; try{ localStorage.setItem(k,String(num)); }catch(_){ } res={year:y,num,certificateNo:`AC/${y}/${String(num).padStart(4,'0')}`}; }
+    state.certificateNo=res.certificateNo; try{ const f=document.getElementById('data-form'); const el=f&&f.elements&&f.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); return res;
+  }catch(_){ return null; }
+}
+
+// Override default generate to reserve number first
+try{
+  const __orig_generateAndUploadPDF = generateAndUploadPDF;
+  generateAndUploadPDF = async function(){ try{ await prepareCertificateNoBeforeSave(); }catch(_){ } return __orig_generateAndUploadPDF.apply(this, arguments); };
+}catch(_){ }
+
+// Safer bump and ensure overrides
+try{
+  const __old_bump = bumpCertificateNoAfterSave;
+  bumpCertificateNoAfterSave = function(){ try{ const y=new Date().getFullYear(); const s=String(state.certificateNo||''); const m=/^AC\/(\d{4})\/(\d{3,})$/.exec(s); const used = m?Number(m[2]): (function(){ let base=149; try{ const v=localStorage.getItem('cond-cert-seq-'+y); if(v!=null&&v!==''&&!isNaN(+v)) base=Number(v);}catch(_){ } return base+1; })(); try{ localStorage.setItem('cond-cert-seq-'+y, String(used)); }catch(_){ } const next=used+1; state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`; try{ const form=document.getElementById('data-form'); const el=form&&form.elements&&form.elements['certificateNo']; if(el) el.value=state.certificateNo; }catch(_){ } saveToLocal(); updatePreview(); }catch(_){ } };
+}catch(_){ }
+try{
+  const __old_ensure = ensureCertificateNo;
+  ensureCertificateNo = function(){ const y=new Date().getFullYear(); let base=149; try{ const v=localStorage.getItem('cond-cert-seq-'+y); if(v!=null&&v!==''&&!isNaN(+v)) base=Number(v);}catch(_){ } const next=base+1; state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`; try{ const p=/^AC[\/\- ]?(\d{4})[\/\- ]?(\d{3,})$/i.exec(String(state.certificateNo||'')); if(!p || Number(p[2])<150){ state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`; } }catch(_){ } };
+}catch(_){ }
 
 function deleteTagPreset(tag){
   if(!tag) return false;
