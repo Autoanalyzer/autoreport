@@ -196,7 +196,29 @@ async function openPreviewModal(){
 function makeBaseFilename(){const tag=(state.tagNo||'TAG').replace(/[^\w\-]+/g,'_'),date=state.calibrateDate||new Date().toISOString().slice(0,10);return`Conductivity_${tag}_${date}`}
 async function waitImages(el){const imgs=[...el.querySelectorAll('img')];await Promise.all(imgs.map(i=>i.complete&&i.naturalWidth?null:new Promise(r=>{i.onload=i.onerror=()=>r()})));await Promise.all(imgs.map(i=>i.decode?.().catch(()=>{})))}
 function certSeqKey(){const y=new Date().getFullYear();return'cond-cert-seq-'+y}
-function bumpCertificateNoAfterSave(){try{const y=new Date().getFullYear(),k=certSeqKey();let c=Number(localStorage.getItem(k)||'149');c=c+1;localStorage.setItem(k,String(c));state.certificateNo=`AC/${y}/${String(c).padStart(4,'0')}`}catch(_){}}
+function bumpCertificateNoAfterSave(){
+  try{
+    const y = new Date().getFullYear();
+    const k = certSeqKey();
+    let cur = Number(localStorage.getItem(k) || '149');
+    // "cur" already reflects the currently shown certificate no. from ensureCertificateNo
+    const used = cur; // this one was just used for the saved PDF
+    // mark used in storage (kept the same value)
+    localStorage.setItem(k, String(used));
+    // compute next certificate no. for immediate display
+    const next = used + 1;
+    state.certificateNo = `AC/${y}/${String(next).padStart(4,'0')}`;
+    // reflect to form input if present
+    try{
+      const form = document.getElementById('data-form');
+      const el = form && form.elements && form.elements['certificateNo'];
+      if (el) el.value = state.certificateNo;
+    }catch(_){ }
+    // persist and refresh preview so user immediately sees the increment
+    saveToLocal();
+    updatePreview();
+  }catch(_){ }
+}
 async function generateAndUploadPDF(){const base=$('#certificate');if(!base)return;const filename=makeBaseFilename()+'.pdf';const box=document.createElement('div');box.id='pdf-sandbox';box.style.cssText='position:fixed;left:0;top:0;width:210mm;z-index:-1;opacity:0;pointer-events:none;';const el=base.cloneNode(true);el.id='certificate-print';document.body.appendChild(box);box.appendChild(el);el.classList.add('pdf');await waitImages(el);try{if(document.fonts&&document.fonts.ready){await document.fonts.ready}}catch(_){ }const opt={margin:[0,0,0,0],filename,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};try{busy('Creating PDF...');let blob=null;await window.html2pdf().from(el).set(opt).toPdf().get('pdf').then(pdf=>{try{const n=typeof pdf.getNumberOfPages==='function'?pdf.getNumberOfPages():1;for(let i=n;i>=2;i--){pdf.deletePage(i)}}catch(_){ }blob=pdf.output('blob')});busy('Uploading to Google Drive...');if(GAS_URL){const res=await uploadViaAppsScript(blob,filename);const url=(res&&(res.url||res.webViewLink||(res.fileId?('https://drive.google.com/file/d/'+res.fileId+'/view'):'')))||'';bumpCertificateNoAfterSave();toast('Saved: '+filename+(url?' โ“':''))}else{const meta=await uploadToDriveQuiet(blob,filename);const url=meta&&(meta.webViewLink||(meta.id?('https://drive.google.com/file/d/'+meta.id+'/view'):''));bumpCertificateNoAfterSave();toast('Saved: '+filename+(url?' โ“':''))}}catch(err){console.error(err);toast('Save failed')}finally{idle();try{box.remove()}catch(_){}}}
 function loadGIS(){return new Promise(r=>{if(window.google&&google.accounts&&google.accounts.oauth2){r();return}const iv=setInterval(()=>{if(window.google&&google.accounts&&google.accounts.oauth2){clearInterval(iv);r()}},100)})}
 async function getGoogleAccessToken(){await loadGIS();return new Promise((res,rej)=>{try{if(googleAccessToken){res(googleAccessToken);return}if(!googleTokenClient){googleTokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.file',callback:(rp)=>{if(rp&&rp.access_token){googleAccessToken=rp.access_token;res(googleAccessToken)}else rej(new Error('no access token'))}})}const authed=(typeof localStorage!=='undefined'&&localStorage.getItem('gdrive_authed')==='1');googleTokenClient.requestAccessToken({prompt:authed?'':'consent'});try{localStorage.setItem('gdrive_authed','1')}catch(_){}}catch(e){rej(e)}})}
