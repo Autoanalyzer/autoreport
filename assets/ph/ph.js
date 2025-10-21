@@ -718,7 +718,7 @@ async function generatePDF(){
   const targetH = (297 - topPadMm - bottomPadMm) * pxPerMm;
  // กันเหนียวไม่ให้ล้นจนเกิดหน้าว่าง
 
-  const minScale = 0.84, maxScale = 1.05, upperBound = 1.20;
+  const minScale = 0.80, maxScale = 1.05, upperBound = 1.20;
   const measureAt = async (s) => { root.style.setProperty('--pdf-scale', String(s)); await new Promise(r => requestAnimationFrame(r)); return el.getBoundingClientRect().height; };
   let lo = minScale, hi = maxScale;
   const current = parseFloat(getComputedStyle(root).getPropertyValue('--pdf-scale')) || 0.955;
@@ -726,7 +726,7 @@ async function generatePDF(){
   let hAtHi = await measureAt(hi);
   while (hAtHi < targetH && hi < upperBound) { const nextHi = Math.min(upperBound, hi * 1.06); if (Math.abs(nextHi - hi) < 0.0008) break; hi = nextHi; hAtHi = await measureAt(hi); }
   if (hAtHi > targetH){ for (let i=0;i<10;i++){ const mid = (lo + hi) / 2; const h = await measureAt(mid); if (h > targetH) hi = mid; else lo = mid; if (Math.abs(hi - lo) < 0.0008) break; } } else { lo = hi; }
-  const scale = lo * 0.992;
+  const scale = lo * 0.990;
 root.style.setProperty('--pdf-scale', String(scale));
   const opt = {
     margin: [0,0,0,0],
@@ -756,7 +756,7 @@ root.style.setProperty('--pdf-scale', String(scale));
           const total = typeof pdf.getNumberOfPages === 'function'
             ? pdf.getNumberOfPages()
             : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1);
-          // no page deletion here
+          try{ const total = typeof pdf.getNumberOfPages === " function\ ? pdf.getNumberOfPages() : (pdf.internal && pdf.internal.getNumberOfPages ? pdf.internal.getNumberOfPages() : 1); for (let i = total; i >= 2; i--) { pdf.deletePage(i); } }catch(_){}
         } catch (_) { /* noop */ }
         pdfBlob = pdf.output('blob');
       });
