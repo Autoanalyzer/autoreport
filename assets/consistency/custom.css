@@ -91,7 +91,7 @@ table.funcchk thead .hdr2 th{ background:#eef4ff; font-weight:600; text-align:ce
 
 /* --- Photo symmetry (Consistency only) --- */
 .cert .photos{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; align-items:stretch }
-.cert .photos img{ display:block; width:100%; height:52mm; object-fit:cover; object-position:center; border:1px solid var(--border); border-radius:2px; background:#fff }
+.cert .photos img{ display:block; width:90%; height:52mm; object-fit:cover; object-position:center; border:1px solid var(--border); border-radius:2px; background:#fff }
 .paper.pdf .photos img{ height:52mm !important; object-fit:cover; object-position:center }
 
 /* App header theme (match pH) */
