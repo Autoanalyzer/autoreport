@@ -49,6 +49,6 @@
 .app-header::before{left:-60px; top:-60px; width:160px; height:160px; background:radial-gradient(closest-side, rgba(255,255,255,.18), transparent 70%)}
 .app-header::after{right:-70px; bottom:-70px; width:200px; height:200px; background:radial-gradient(closest-side, rgba(255,255,255,.14), transparent 70%)}
 .app-header .brand{ background:none; border:none; color:#fff; padding:0; border-radius:0; font-weight:900; font-size:clamp(18px,5.2vw,22px); text-shadow:0 2px 12px rgba(0,0,0,.25) }
-.app-header .title{ color:#dbe9ff; font-weight:700; letter-spacing:.3px; text-shadow:0 1px 0 rgba(0,0,0,.12); position:relative; font-size:13px }
+.app-header .title{ color:#dbe9ff; font-weight:700; letter-spacing:.3px; text-shadow:0 1px 0 rgba(0,0,0,.12); position:relative; font-size:12px }
 /* Module tag under title */
 .app-header .title::after{ content:'conductivity'; display:block; margin-top:2px }
