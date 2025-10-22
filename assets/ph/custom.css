@@ -63,3 +63,17 @@
 .paper.pdf #photos-block{ margin-top:6px !important; }
 .paper.pdf .photos .photo img{ height:52mm !important; object-position:center top; }
 .paper.pdf .photos img{ height:52mm !important; object-fit:cover; object-position:center top; }
+
+/* -----------------------------------------
+   Landing card: replace yellow pH logo text
+   with red pH probe illustration inside the
+   yellow rounded square.
+   ----------------------------------------- */
+.card-grid article:nth-child(1) .card-icon{
+  /* Two layers: icon SVG on top, yellow gradient below */
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><g transform='rotate(-25 64 64)'><rect x='22' y='55' width='84' height='18' rx='8' fill='%23e53935' stroke='%23111' stroke-width='2'/><rect x='30' y='55' width='12' height='18' rx='3' fill='%23cf2a2a' stroke='%23111' stroke-width='2'/><circle cx='22' cy='64' r='5' fill='%2390caf9' stroke='%23111' stroke-width='2'/><rect x='102' y='58' width='10' height='12' rx='3' fill='%23272727' stroke='%23111' stroke-width='2'/></g></svg>") center/80% no-repeat,
+    linear-gradient(135deg,#FFEB7F,#F6D64A);
+  color: transparent;  /* hide 'pH' text */
+  font-size: 0;        /* ensure no text layout */
+}
