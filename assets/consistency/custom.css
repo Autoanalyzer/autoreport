@@ -8,7 +8,7 @@
 .cert-header .cert-title{ grid-column:2; text-align:center; justify-self:center; margin:0; }
 .cert-header .cert-sub{ grid-column:3; justify-self:end; align-self:center; text-align:right; margin:0; }
 
-.paper.pdf{ padding: 3mm 12mm 10mm 12mm; }
+.paper.pdf{ padding: 3mm 12mm 24mm 12mm !important; }
 .paper.pdf .cert-header{ padding-bottom:3px; }
 
 /* Tables tuned a bit tighter for consistency layout */
@@ -102,3 +102,13 @@ table.funcchk thead .hdr2 th{ background:#eef4ff; font-weight:600; text-align:ce
 .app-header .brand{ background:none; border:none; color:#fff; padding:0; border-radius:0; font-weight:900; font-size:clamp(18px,5.2vw,22px); text-shadow:0 2px 12px rgba(0,0,0,.25) }
 .app-header .title{ color:#dbe9ff; font-weight:700; letter-spacing:.3px; text-shadow:0 1px 0 rgba(0,0,0,.12); position:relative; font-size:13px }
 .app-header .title::after{ content:'consistency'; display:block; margin-top:2px }
+
+/* --- keep last sections from being cut --- */
+.cert table,
+.cert .photos,
+#end-verify,           /* ถ้ามี id ส่วน End of Verify */
+.end-of-verify,        /* หรือ class ของตารางท้าย */
+.end-of-calibration {  /* เผื่อชื่อส่วนท้ายเดิม */
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
