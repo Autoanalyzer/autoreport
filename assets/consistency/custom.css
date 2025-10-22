@@ -14,7 +14,7 @@
 /* Tables tuned a bit tighter for consistency layout */
 .cert{ --border:#a0b1c6; } /* slightly darker borders inside the certificate only */
 .paper.pdf table.tgrid th,
-.paper.pdf table.tgrid td{ font-size:10.5px; padding:4px 5px; }
+.paper.pdf table.tgrid td{ font-size:9.5px; padding:3px 4px; }
 
 /* Hide header action buttons and in-form tabs on small screen */
 .app-header .actions{ display:none !important }
@@ -40,7 +40,7 @@
 /* Function check tables */
 table.funcchk{ width:100%; border-collapse:collapse; table-layout:fixed; }
 table.funcchk th, table.funcchk td{ border:1px solid var(--border); padding:6px 8px; font-size:12px; vertical-align:middle; }
-.paper.pdf table.funcchk th, .paper.pdf table.funcchk td{ font-size:10.5px; padding:4px 5px; }
+.paper.pdf table.funcchk th, .paper.pdf table.funcchk td{ font-size:9.5px; padding:3px 4px; }
 /* Make both function-check tables align nicely */
 .paper.pdf #function-check .grid, #function-check .grid{ align-items:stretch; }
 /* Tighten center gap between the two tables in certificate */
@@ -92,7 +92,7 @@ table.funcchk thead .hdr2 th{ background:#eef4ff; font-weight:600; text-align:ce
 /* --- Photo symmetry (Consistency only) --- */
 .cert .photos{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; align-items:stretch }
 .cert .photos img{ display:block; width:100%; height:52mm; object-fit:cover; object-position:center; border:1px solid var(--border); border-radius:2px; background:#fff }
-.paper.pdf .photos img{ height:52mm !important; object-fit:cover; object-position:center }
+.paper.pdf .photos img{ height:45mm !important; object-fit:cover; object-position:center }
 
 /* App header theme (match pH) */
 .app-header{ background:linear-gradient(135deg,#1e4ef5,#0e38e5); color:#fff; border-bottom:none; box-shadow:0 10px 24px rgba(13,56,229,.25); border-bottom-left-radius:18px; border-bottom-right-radius:18px; padding-bottom:16px; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; gap:4px }
