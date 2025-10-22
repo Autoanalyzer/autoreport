@@ -15,8 +15,8 @@
 .paper.pdf .cert-header{ padding-bottom:3px; }
 
 /* Photo frames: match pH symmetry */
-.paper.pdf .photos .photo img{ height:58mm; object-position:center top; }
-.paper.pdf .photos img{ height:58mm; object-fit:cover; object-position:center top; }
+.paper.pdf .photos .photo img{ height:48mm; object-position:center top; }
+.paper.pdf .photos img{ height:48mm; object-fit:cover; object-position:center top; }
 
 /* Hide header action buttons and in-form tabs for Conductivity */
 .app-header .actions{ display:none !important }
@@ -28,7 +28,7 @@
 .cert table.tgrid.ref th,
 .cert table.tgrid.ref td{ font-size:12px; padding:6px 6px 4px 6px; }
 .paper.pdf table.tgrid.ref th,
-.paper.pdf table.tgrid.ref td{ font-size:10.5px; padding:4px 5px; }
+.paper.pdf table.tgrid.ref td{ font-size:9.5px; padding:3px 4px; }
 
 /* Yellow section headers (panel + details summary) */
 .panel>h2{
