@@ -434,7 +434,7 @@ async function openPreviewModal(){
   mount.innerHTML = '';
   mount.appendChild(clone);
   // Fix range separator inside preview copy too
-  try{ fixRangeSeparatorIn(clone); }catch(_){ }
+  //try{ fixRangeSeparatorIn(clone); }catch(_){ }
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   const close = () => { modal.classList.add('hidden'); mount.innerHTML = ''; document.body.style.overflow = ''; };
